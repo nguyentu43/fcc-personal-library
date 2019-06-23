@@ -117,7 +117,7 @@ suite('Functional Tests', function() {
       test('Test POST /api/books/[id] with comment', function(done){
         chai
         .request(server)
-        .post('/api/books/' + '5d0f39b97b581d44e3738d3a')
+        .post('/api/books/' + '5d0f3c44fd960e5da7b34d6a')
         .send({comment: 'assert'})
         .end(function(err, res){
           assert.equal(res.status, 200);
