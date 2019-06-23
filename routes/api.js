@@ -19,9 +19,9 @@ const schemaBook = mongoose.Schema({
     required: true
   },
   comments: [String]
-});
+}, {versionKey: false});
 
-schemaBook.methods.toJSON = function(){
+schemaBook.methods.hideComments = function(){
   const obj = this.toObject();
   obj.commentcount = obj.comments.length;
   delete obj.comments;
@@ -38,7 +38,7 @@ module.exports = function (app) {
       //json res format: [{"_id": bookid, "title": book_title, "commentcount": num_of_comments },...]
       Book.find({}, function(err, books){
         if(err) return res.send('mongodb error');
-        res.json(books.map(book => book.toJSON()));
+        res.json(books.map(book => book.hideComments()));
       });
     })
     
@@ -57,6 +57,10 @@ module.exports = function (app) {
     
     .delete(function(req, res){
       //if successful response will be 'complete delete successful'
+      Book.remove({}, function(err){
+        if(err) return res.send("mongodb error");
+        res.send('complete delete successful');
+      });
     });
 
 
@@ -65,17 +69,30 @@ module.exports = function (app) {
     .get(function (req, res){
       var bookid = req.params.id;
       //json res format: {"_id": bookid, "title": book_title, "comments": [comment,comment,...]}
+      Book.findOne({_id: bookid}, function(err, book){
+        if(err) return res.send('mongodb error');
+        if(book) res.json(book);
+        else res.send('no book exists');
+      });
     })
     
     .post(function(req, res){
       var bookid = req.params.id;
       var comment = req.body.comment;
       //json res format same as .get
+      Book.findOneAndUpdate({_id: bookid}, {comments: {comments: comment}}, function(err, book){
+        if(err) return res.send('mongodb error');
+        res.json(book);
+      })
     })
     
     .delete(function(req, res){
       var bookid = req.params.id;
       //if successful response will be 'delete successful'
+      Book.findOneAndDelete({_id: bookid}, function(err, book){
+        if(err) return res.send('mongodb error');
+        res.send('delete successful');
+      });
     });
   
 };
