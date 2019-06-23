@@ -69,7 +69,7 @@ module.exports = function (app) {
     .get(function (req, res){
       var bookid = req.params.id;
       //json res format: {"_id": bookid, "title": book_title, "comments": [comment,comment,...]}
-      Book.findOne({_id: bookid}, function(err, book){
+      Book.findById(bookid, function(err, book){
         if(err) return res.send('mongodb error');
         if(book) res.json(book);
         else res.send('no book exists');
@@ -80,9 +80,16 @@ module.exports = function (app) {
       var bookid = req.params.id;
       var comment = req.body.comment;
       //json res format same as .get
-      Book.findOneAndUpdate({_id: bookid}, {comments: {comments: comment}}, function(err, book){
+      Book.findById(bookid, function(err, book){
         if(err) return res.send('mongodb error');
-        res.json(book);
+        if(!book) res.send('no book exists');
+        else {
+          book.comments.push(comment);
+          book.save(function(err, book){
+            if(err) return res.send('mongodb error');
+            res.json(book);
+          });
+        }
       })
     })
     
